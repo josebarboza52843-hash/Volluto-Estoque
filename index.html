@@ -102,7 +102,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;borde
       <label>Destino / motivo / OS</label><input id="movMotivo" placeholder="Ex.: Entregue para equipe de roçada / OS 123">
       <div class="actions" style="margin-top:12px"><button class="primary" onclick="registrarMov()">Registrar movimentação</button></div>
     </div>
-    <div class="card"><h2>Histórico de movimentações</h2><div style="overflow:auto"><table><thead><tr><th>Data</th><th>Item</th><th>Tipo</th><th>Qtd.</th><th>Responsável</th></tr></thead><tbody id="movHist"></tbody></table></div></div>
+    <div class="card"><h2>Histórico de movimentações</h2><div class="actions" style="margin-bottom:10px"><button class="danger" onclick="limparHistoricoMov()">🗑️ Apagar histórico de movimentações</button></div><div style="overflow:auto"><table><thead><tr><th>Data</th><th>Item</th><th>Tipo</th><th>Qtd.</th><th>Responsável</th></tr></thead><tbody id="movHist"></tbody></table></div></div>
   </section>
 
   <section id="inv" class="hidden">
@@ -118,7 +118,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;borde
       <img id="prevInv" class="thumb hidden">
       <div class="actions" style="margin-top:12px"><button class="primary" onclick="salvarInv()">Concluir inventário deste item</button></div>
     </div>
-    <div class="card"><h2>Últimas conferências</h2><div id="invHist"></div></div>
+    <div class="card"><h2>Últimas conferências</h2><div class="actions" style="margin-bottom:10px"><button class="danger" onclick="limparHistoricoInv()">🗑️ Apagar histórico de inventário</button></div><div id="invHist"></div></div>
   </section>
 </main>
 <script>
@@ -135,6 +135,16 @@ function limparCad(){["codigo","nome","local","obs"].forEach(i=>document.getElem
 function salvarItem(){if(!nome.value.trim())return alert("Informe o nome do item.");let item={id:Date.now(),cat:cat.value,codigo:codigo.value.trim(),nome:nome.value.trim(),equip:equip.value,un:un.value,min:+min.value||0,qtd:+qtd.value||0,local:local.value.trim(),obs:obs.value.trim(),foto:fotoCadastro,criado:new Date().toISOString()};itens.push(item);if(item.qtd>0)movs.unshift({id:Date.now()+1,item:item.id,tipo:"entrada",qtd:item.qtd,resp:"Cadastro inicial",motivo:"Saldo inicial",data:new Date().toISOString()});save();limparCad();refresh();alert("Item cadastrado com sucesso.")}
 function registrarMov(){let id=+movItem.value,item=itens.find(x=>x.id===id),q=+movQtd.value;if(!item||!q||q<=0)return alert("Selecione o item e informe a quantidade.");if(movTipo.value==="saida"&&q>item.qtd)return alert("Saída maior que o estoque disponível.");item.qtd += movTipo.value==="entrada"?q:-q;movs.unshift({id:Date.now(),item:id,tipo:movTipo.value,qtd:q,resp:movResp.value.trim(),motivo:movMotivo.value.trim(),data:new Date().toISOString()});save();refresh();alert("Movimentação registrada. Estoque atualizado automaticamente.")}
 function salvarInv(){let id=+invItem.value,item=itens.find(x=>x.id===id),fis=+invQtd.value;if(!item||isNaN(fis))return alert("Selecione o item e informe a quantidade física.");let ant=item.qtd,dif=fis-ant;item.qtd=fis;invs.unshift({id:Date.now(),item:id,sistema:ant,fisico:fis,dif,resp:invResp.value.trim(),obs:invObs.value.trim(),foto:fotoInventario,data:new Date().toISOString()});if(dif!==0)movs.unshift({id:Date.now()+1,item:id,tipo:dif>0?"ajuste +":"ajuste -",qtd:Math.abs(dif),resp:invResp.value.trim()||"Inventário",motivo:"Ajuste automático por inventário",data:new Date().toISOString()});fotoInventario="";prevInv.classList.add("hidden");save();refresh();alert("Inventário registrado e saldo ajustado automaticamente.")}
+function limparHistoricoMov(){
+ if(!movs.length)return alert("O histórico de movimentações já está vazio.");
+ if(!confirm("ATENÇÃO: deseja apagar TODO o histórico de movimentações?\n\nOs itens cadastrados e o estoque atual NÃO serão alterados."))return;
+ movs=[];save();refresh();alert("Histórico de movimentações apagado. O estoque atual foi mantido.");
+}
+function limparHistoricoInv(){
+ if(!invs.length)return alert("O histórico de inventário já está vazio.");
+ if(!confirm("ATENÇÃO: deseja apagar TODO o histórico de inventário?\n\nOs itens cadastrados e o estoque atual NÃO serão alterados."))return;
+ invs=[];save();refresh();alert("Histórico de inventário apagado. O estoque atual foi mantido.");
+}
 function renderEstoque(){let q=(busca?.value||"").toLowerCase(),el=document.getElementById("lista");el.innerHTML="";itens.filter(x=>(x.nome+" "+x.codigo+" "+x.cat+" "+x.equip).toLowerCase().includes(q)).forEach(x=>{let low=x.qtd<=x.min,d=document.createElement("div");d.className="item "+(low?"low":"");d.innerHTML=`<div class="row"><div><b>${x.nome}</b><br><small>${x.codigo||"Sem código"} • ${x.cat} • ${x.equip}</small><br><span class="tag ${low?"low":""}">${low?"ESTOQUE BAIXO":"OK"}</span></div>${x.foto?`<img class="thumb" src="${x.foto}">`:""}</div><p><b>Estoque:</b> ${x.qtd} ${x.un} &nbsp; | &nbsp; <b>Mínimo:</b> ${x.min} ${x.un}<br><b>Local:</b> ${x.local||"-"}</p>`;el.appendChild(d)})}
 function refresh(){kItens.textContent=itens.length;kQtd.textContent=itens.reduce((a,b)=>a+(+b.qtd||0),0);kBaixo.textContent=itens.filter(x=>x.qtd<=x.min).length;kMov.textContent=movs.length;alertas.innerHTML="";let lows=itens.filter(x=>x.qtd<=x.min);alertas.innerHTML=lows.length?"":"<div class='success alert'>Nenhum item com estoque baixo.</div>";lows.forEach(x=>{avisarEstoqueBaixo(x);let d=document.createElement("div");d.className="alert";d.innerHTML=`⚠️ <b>${x.nome}</b> — estoque ${x.qtd} ${x.un}; mínimo ${x.min} ${x.un}`;alertas.appendChild(d)});renderEstoque();let opts=itens.map(x=>`<option value="${x.id}">${x.nome} — ${x.qtd} ${x.un}</option>`).join("");movItem.innerHTML=opts;invItem.innerHTML=opts;movHist.innerHTML=movs.slice(0,50).map(m=>{let x=itens.find(i=>i.id===m.item);return `<tr><td>${new Date(m.data).toLocaleString("pt-BR")}</td><td>${x?.nome||"Item removido"}</td><td>${m.tipo}</td><td>${m.qtd}</td><td>${m.resp||"-"}</td></tr>`}).join("");invHist.innerHTML=invs.slice(0,20).map(v=>{let x=itens.find(i=>i.id===v.item);return `<div class="item"><b>${x?.nome||"Item"}</b><br><small>${new Date(v.data).toLocaleString("pt-BR")}</small><p>Sistema: ${v.sistema} | Físico: ${v.fisico} | Diferença: ${v.dif}</p>${v.foto?`<img class="thumb" src="${v.foto}">`:""}</div>`}).join("")}
 
