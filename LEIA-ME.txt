@@ -1,0 +1,1 @@
+Volluto Estoque 2.0 com notificações. Consulte LEIA-ME-FIREBASE.txt para configurar alertas com o app fechado.

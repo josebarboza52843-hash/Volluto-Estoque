@@ -1,0 +1,46 @@
+VOLLUTO ESTOQUE 2.0 - NOTIFICAÇÕES
+
+O que foi adicionado
+- Botão "Ativar notificações".
+- Teste de notificação no próprio celular.
+- Alerta automático quando um item chega ou fica abaixo do estoque mínimo.
+- Service Worker preparado para receber Web Push.
+- Campo cloud-config.js para conectar um serviço externo.
+- Pasta firebase-functions com backend-base para Firebase Cloud Messaging.
+
+IMPORTANTE
+O GitHub Pages sozinho NÃO consegue enviar uma notificação futura para o celular quando o aplicativo está fechado.
+Para isso, é necessário um serviço externo (backend) que envie Web Push. Este pacote está preparado para Firebase.
+
+ETAPA 1 - publicar esta versão no GitHub
+Use um repositório separado ou substitua os arquivos do Volluto-Estoque atual:
+index.html
+cloud-config.js
+manifest.webmanifest
+sw.js
+icon-192.png
+icon-512.png
+
+ETAPA 2 - notificações locais
+Abra o app e toque em "Ativar notificações". Autorize no navegador.
+Sempre que o estoque ficar <= estoque mínimo, o app mostrará um alerta local.
+
+ETAPA 3 - notificações com o app fechado (Firebase)
+1. Crie um projeto no Firebase Console.
+2. Adicione um aplicativo Web.
+3. Ative Cloud Messaging.
+4. Gere/obtenha uma chave pública VAPID.
+5. Instale o Firebase CLI no computador ou use um ambiente compatível.
+6. Inicialize Functions no projeto e copie os arquivos da pasta firebase-functions.
+7. Faça deploy das functions registrarToken e estoqueBaixo.
+8. Coloque a URL da function estoqueBaixo em cloud-config.js.
+9. Use firebase-client-example.js como base para registrar o token FCM de cada celular.
+10. Publique novamente no GitHub Pages.
+
+ARQUITETURA RECOMENDADA PARA PRODUÇÃO
+Para o alerta realmente refletir o estoque de vários usuários/aparelhos, o próximo passo recomendado
+é mover os dados de estoque de localStorage para Firestore. Assim entradas/saídas ficam centralizadas e
+a função de estoque baixo pode disparar mesmo que o aparelho do almoxarife esteja fechado.
+
+SEGURANÇA
+Antes de uso em produção, proteja as functions com autenticação e regras Firestore apropriadas.

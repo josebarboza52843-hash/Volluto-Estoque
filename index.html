@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#071f46">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Volluto Estoque</title><script src="cloud-config.js"></script>
+<style>
+:root{--navy:#071f46;--navy2:#0d315f;--gold:#f0b323;--bg:#f3f6fa;--white:#fff;--red:#b42318;--green:#18794e;--gray:#667085;--line:#d7dde7}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:#172033}
+header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:16px;border-bottom:4px solid var(--gold);position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:10px}.logo{width:48px;height:48px;border:3px solid var(--gold);border-radius:50%;display:grid;place-items:center;color:var(--gold);font-weight:900;font-size:24px}
+h1{font-size:21px;margin:0}.small{font-size:12px;opacity:.9;margin-top:2px}
+.wrap{max-width:980px;margin:auto;padding:12px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px}
+.tabs button{border:0;border-radius:10px;padding:11px 6px;font-weight:800;background:#dfe7f2;color:var(--navy)}
+.tabs button.active{background:var(--gold);color:#172033}
+.card{background:#fff;border-radius:14px;padding:15px;margin:11px 0;box-shadow:0 2px 10px #00000012;border:1px solid #e8ecf2}
+.card h2{font-size:17px;color:var(--navy);margin:0 0 12px;border-left:5px solid var(--gold);padding-left:8px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+label{display:block;font-size:13px;font-weight:700;margin:10px 0 5px}
+input,select,textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:9px;background:white;font-size:14px}
+textarea{min-height:75px}
+button,.btn{border:0;border-radius:9px;padding:11px 13px;font-weight:800;font-size:14px;cursor:pointer}
+.primary{background:var(--navy);color:#fff}.gold{background:var(--gold);color:#172033}.danger{background:#fee4e2;color:var(--red)}.success{background:#dcfae6;color:var(--green)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.kpi{background:#fff;border-radius:12px;padding:12px;border:1px solid #e5e9f0}.kpi b{display:block;font-size:22px;color:var(--navy)}.kpi span{font-size:12px;color:var(--gray)}
+.item{border:1px solid #e3e7ed;border-radius:11px;padding:11px;margin:9px 0;background:#fff}.item.low{border:2px solid #f04438;background:#fff6f5}.item .row{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.tag{font-size:11px;font-weight:800;padding:4px 7px;border-radius:99px;background:#eef4ff;color:var(--navy)}.tag.low{background:#fee4e2;color:var(--red)}
+.thumb{width:72px;height:72px;border-radius:9px;object-fit:cover;border:1px solid #ddd}
+.alert{padding:11px;border-radius:9px;background:#fff1c2;border:1px solid #f0b323;font-size:13px}
+.hidden{display:none}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}th{color:var(--navy)}
+@media(max-width:700px){.grid,.grid3{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.tabs{grid-template-columns:1fr 1fr}}
+
+.noticebox{padding:12px;border-radius:10px;background:#eef4ff;border:1px solid #bfd2ff;font-size:13px;margin:10px 0}
+.noticebox.warn{background:#fff1c2;border-color:#f0b323}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="logo">V</div><div><h1>VOLLUTO ESTOQUE</h1><div class="small">EPI • EPC • Peças de reposição • O&M</div></div></div></header>
+<main class="wrap">
+  <div class="tabs">
+    <button id="tPainel" class="active" onclick="aba('painel')">Painel</button>
+    <button id="tCadastro" onclick="aba('cadastro')">Cadastro</button>
+    <button id="tMov" onclick="aba('mov')">Entrada / Saída</button>
+    <button id="tInv" onclick="aba('inv')">Inventário</button>
+  </div>
+
+  <section id="painel">
+    <div class="kpis">
+      <div class="kpi"><b id="kItens">0</b><span>Itens cadastrados</span></div>
+      <div class="kpi"><b id="kQtd">0</b><span>Quantidade total</span></div>
+      <div class="kpi"><b id="kBaixo">0</b><span>Estoque baixo</span></div>
+      <div class="kpi"><b id="kMov">0</b><span>Movimentações</span></div>
+    </div>
+    <div class="card">
+  <h2>Notificações</h2>
+  <div id="notifStatus" class="noticebox">Verificando permissão de notificações...</div>
+  <div class="actions">
+    <button class="primary" onclick="ativarNotificacoes()">🔔 Ativar notificações</button>
+    <button class="gold" onclick="testarNotificacao()">Testar notificação</button>
+  </div>
+  <div class="noticebox warn">Notificação local: funciona quando o aplicativo está aberto. Para receber alertas com o app fechado, configure o Firebase conforme o arquivo LEIA-ME-FIREBASE.txt incluído neste pacote.</div>
+</div>
+<div class="card"><h2>Alertas de estoque baixo</h2><div id="alertas"></div></div>
+    <div class="card"><h2>Estoque atual</h2>
+      <input id="busca" placeholder="Buscar por nome, código, categoria ou equipamento..." oninput="renderEstoque()">
+      <div id="lista"></div>
+    </div>
+  </section>
+
+  <section id="cadastro" class="hidden">
+    <div class="card"><h2>Cadastro rápido de item</h2>
+      <div class="grid">
+        <div><label>Categoria</label><select id="cat"><option>EPI</option><option>EPC</option><option>Peça de reposição</option><option>Consumível</option></select></div>
+        <div><label>Código / referência</label><input id="codigo" placeholder="Ex.: EPI-001 / SP-045"></div>
+        <div><label>Nome do item</label><input id="nome" placeholder="Ex.: Protetor auricular"></div>
+        <div><label>Aplicação / equipamento</label><select id="equip"><option>Geral</option><option>Giro Zero</option><option>Spider ILD02</option><option>Roçadeira Manual</option></select></div>
+        <div><label>Unidade</label><select id="un"><option>un</option><option>par</option><option>kit</option><option>cx</option><option>lt</option><option>m</option></select></div>
+        <div><label>Estoque mínimo</label><input id="min" type="number" min="0" value="1"></div>
+        <div><label>Quantidade inicial</label><input id="qtd" type="number" min="0" value="0"></div>
+        <div><label>Local / prateleira</label><input id="local" placeholder="Ex.: Almoxarifado A - P2"></div>
+      </div>
+      <label>Observação</label><textarea id="obs" placeholder="Marca, modelo, CA do EPI, compatibilidade da peça, etc."></textarea>
+      <label>Foto para conferência</label>
+      <div class="actions"><label class="btn primary">📷 Tirar foto<input id="fotoCad" type="file" accept="image/*" capture="environment" hidden></label><label class="btn gold">🖼️ Galeria<input id="fotoGal" type="file" accept="image/*" hidden></label></div>
+      <img id="prevCad" class="thumb hidden">
+      <div class="actions" style="margin-top:12px"><button class="primary" onclick="salvarItem()">Salvar item</button><button class="gold" onclick="limparCad()">Limpar</button></div>
+    </div>
+  </section>
+
+  <section id="mov" class="hidden">
+    <div class="card"><h2>Registrar entrada ou saída</h2>
+      <div class="grid">
+        <div><label>Item</label><select id="movItem"></select></div>
+        <div><label>Tipo</label><select id="movTipo"><option value="entrada">Entrada</option><option value="saida">Saída</option></select></div>
+        <div><label>Quantidade</label><input id="movQtd" type="number" min="0.01" step="0.01" value="1"></div>
+        <div><label>Responsável</label><input id="movResp" placeholder="Nome"></div>
+      </div>
+      <label>Destino / motivo / OS</label><input id="movMotivo" placeholder="Ex.: Entregue para equipe de roçada / OS 123">
+      <div class="actions" style="margin-top:12px"><button class="primary" onclick="registrarMov()">Registrar movimentação</button></div>
+    </div>
+    <div class="card"><h2>Histórico de movimentações</h2><div style="overflow:auto"><table><thead><tr><th>Data</th><th>Item</th><th>Tipo</th><th>Qtd.</th><th>Responsável</th></tr></thead><tbody id="movHist"></tbody></table></div></div>
+  </section>
+
+  <section id="inv" class="hidden">
+    <div class="card"><h2>Inventário / conferência</h2>
+      <p style="font-size:13px;color:#667085">Selecione o item, informe a quantidade física encontrada e registre uma foto de conferência.</p>
+      <div class="grid">
+        <div><label>Item</label><select id="invItem"></select></div>
+        <div><label>Quantidade física</label><input id="invQtd" type="number" min="0"></div>
+        <div><label>Responsável pela conferência</label><input id="invResp"></div>
+        <div><label>Observação</label><input id="invObs" placeholder="Divergência, avaria, validade..."></div>
+      </div>
+      <div class="actions"><label class="btn primary">📷 Foto da conferência<input id="invFoto" type="file" accept="image/*" capture="environment" hidden></label></div>
+      <img id="prevInv" class="thumb hidden">
+      <div class="actions" style="margin-top:12px"><button class="primary" onclick="salvarInv()">Concluir inventário deste item</button></div>
+    </div>
+    <div class="card"><h2>Últimas conferências</h2><div id="invHist"></div></div>
+  </section>
+</main>
+<script>
+const KEYI="volluto_estoque_itens", KEYM="volluto_estoque_mov", KEYV="volluto_estoque_inv";
+let itens=JSON.parse(localStorage.getItem(KEYI)||"[]"), movs=JSON.parse(localStorage.getItem(KEYM)||"[]"), invs=JSON.parse(localStorage.getItem(KEYV)||"[]");
+let fotoCadastro="", fotoInventario="";
+function save(){localStorage.setItem(KEYI,JSON.stringify(itens));localStorage.setItem(KEYM,JSON.stringify(movs));localStorage.setItem(KEYV,JSON.stringify(invs))}
+function aba(a){["painel","cadastro","mov","inv"].forEach(x=>{document.getElementById(x).classList.toggle("hidden",x!=a);document.getElementById("t"+x.charAt(0).toUpperCase()+x.slice(1)).classList.toggle("active",x==a)});refresh()}
+function compress(file,cb){let im=new Image();im.src=URL.createObjectURL(file);im.onload=()=>{let s=Math.min(1,900/im.width),c=document.createElement("canvas");c.width=im.width*s;c.height=im.height*s;c.getContext("2d").drawImage(im,0,0,c.width,c.height);cb(c.toDataURL("image/jpeg",.72))}}
+fotoCad.onchange=e=>e.target.files[0]&&compress(e.target.files[0],d=>{fotoCadastro=d;prevCad.src=d;prevCad.classList.remove("hidden")})
+fotoGal.onchange=e=>e.target.files[0]&&compress(e.target.files[0],d=>{fotoCadastro=d;prevCad.src=d;prevCad.classList.remove("hidden")})
+invFoto.onchange=e=>e.target.files[0]&&compress(e.target.files[0],d=>{fotoInventario=d;prevInv.src=d;prevInv.classList.remove("hidden")})
+function limparCad(){["codigo","nome","local","obs"].forEach(i=>document.getElementById(i).value="");qtd.value=0;min.value=1;fotoCadastro="";prevCad.classList.add("hidden")}
+function salvarItem(){if(!nome.value.trim())return alert("Informe o nome do item.");let item={id:Date.now(),cat:cat.value,codigo:codigo.value.trim(),nome:nome.value.trim(),equip:equip.value,un:un.value,min:+min.value||0,qtd:+qtd.value||0,local:local.value.trim(),obs:obs.value.trim(),foto:fotoCadastro,criado:new Date().toISOString()};itens.push(item);if(item.qtd>0)movs.unshift({id:Date.now()+1,item:item.id,tipo:"entrada",qtd:item.qtd,resp:"Cadastro inicial",motivo:"Saldo inicial",data:new Date().toISOString()});save();limparCad();refresh();alert("Item cadastrado com sucesso.")}
+function registrarMov(){let id=+movItem.value,item=itens.find(x=>x.id===id),q=+movQtd.value;if(!item||!q||q<=0)return alert("Selecione o item e informe a quantidade.");if(movTipo.value==="saida"&&q>item.qtd)return alert("Saída maior que o estoque disponível.");item.qtd += movTipo.value==="entrada"?q:-q;movs.unshift({id:Date.now(),item:id,tipo:movTipo.value,qtd:q,resp:movResp.value.trim(),motivo:movMotivo.value.trim(),data:new Date().toISOString()});save();refresh();alert("Movimentação registrada. Estoque atualizado automaticamente.")}
+function salvarInv(){let id=+invItem.value,item=itens.find(x=>x.id===id),fis=+invQtd.value;if(!item||isNaN(fis))return alert("Selecione o item e informe a quantidade física.");let ant=item.qtd,dif=fis-ant;item.qtd=fis;invs.unshift({id:Date.now(),item:id,sistema:ant,fisico:fis,dif,resp:invResp.value.trim(),obs:invObs.value.trim(),foto:fotoInventario,data:new Date().toISOString()});if(dif!==0)movs.unshift({id:Date.now()+1,item:id,tipo:dif>0?"ajuste +":"ajuste -",qtd:Math.abs(dif),resp:invResp.value.trim()||"Inventário",motivo:"Ajuste automático por inventário",data:new Date().toISOString()});fotoInventario="";prevInv.classList.add("hidden");save();refresh();alert("Inventário registrado e saldo ajustado automaticamente.")}
+function renderEstoque(){let q=(busca?.value||"").toLowerCase(),el=document.getElementById("lista");el.innerHTML="";itens.filter(x=>(x.nome+" "+x.codigo+" "+x.cat+" "+x.equip).toLowerCase().includes(q)).forEach(x=>{let low=x.qtd<=x.min,d=document.createElement("div");d.className="item "+(low?"low":"");d.innerHTML=`<div class="row"><div><b>${x.nome}</b><br><small>${x.codigo||"Sem código"} • ${x.cat} • ${x.equip}</small><br><span class="tag ${low?"low":""}">${low?"ESTOQUE BAIXO":"OK"}</span></div>${x.foto?`<img class="thumb" src="${x.foto}">`:""}</div><p><b>Estoque:</b> ${x.qtd} ${x.un} &nbsp; | &nbsp; <b>Mínimo:</b> ${x.min} ${x.un}<br><b>Local:</b> ${x.local||"-"}</p>`;el.appendChild(d)})}
+function refresh(){kItens.textContent=itens.length;kQtd.textContent=itens.reduce((a,b)=>a+(+b.qtd||0),0);kBaixo.textContent=itens.filter(x=>x.qtd<=x.min).length;kMov.textContent=movs.length;alertas.innerHTML="";let lows=itens.filter(x=>x.qtd<=x.min);alertas.innerHTML=lows.length?"":"<div class='success alert'>Nenhum item com estoque baixo.</div>";lows.forEach(x=>{avisarEstoqueBaixo(x);let d=document.createElement("div");d.className="alert";d.innerHTML=`⚠️ <b>${x.nome}</b> — estoque ${x.qtd} ${x.un}; mínimo ${x.min} ${x.un}`;alertas.appendChild(d)});renderEstoque();let opts=itens.map(x=>`<option value="${x.id}">${x.nome} — ${x.qtd} ${x.un}</option>`).join("");movItem.innerHTML=opts;invItem.innerHTML=opts;movHist.innerHTML=movs.slice(0,50).map(m=>{let x=itens.find(i=>i.id===m.item);return `<tr><td>${new Date(m.data).toLocaleString("pt-BR")}</td><td>${x?.nome||"Item removido"}</td><td>${m.tipo}</td><td>${m.qtd}</td><td>${m.resp||"-"}</td></tr>`}).join("");invHist.innerHTML=invs.slice(0,20).map(v=>{let x=itens.find(i=>i.id===v.item);return `<div class="item"><b>${x?.nome||"Item"}</b><br><small>${new Date(v.data).toLocaleString("pt-BR")}</small><p>Sistema: ${v.sistema} | Físico: ${v.fisico} | Diferença: ${v.dif}</p>${v.foto?`<img class="thumb" src="${v.foto}">`:""}</div>`}).join("")}
+
+async function ativarNotificacoes(){
+  if(!("Notification" in window)){notifStatus.textContent="Este navegador não suporta notificações.";return}
+  const p=await Notification.requestPermission();
+  atualizarStatusNotif();
+  if(p==="granted") testarNotificacao("Notificações ativadas","O Volluto Estoque poderá avisar sobre estoque baixo.");
+}
+function atualizarStatusNotif(){
+  if(!("Notification" in window)){notifStatus.textContent="Notificações não suportadas.";return}
+  const p=Notification.permission;
+  notifStatus.textContent = p==="granted" ? "✅ Notificações permitidas neste aparelho." : p==="denied" ? "❌ Notificações bloqueadas. Libere nas configurações do navegador." : "🔔 Notificações ainda não autorizadas.";
+}
+function testarNotificacao(titulo="Volluto Estoque",corpo="Teste de notificação realizado com sucesso."){
+  if(!("Notification" in window))return alert("Notificações não suportadas.");
+  if(Notification.permission!=="granted")return ativarNotificacoes();
+  if(navigator.serviceWorker?.ready){
+    navigator.serviceWorker.ready.then(r=>r.showNotification(titulo,{body:corpo,icon:"icon-192.png",badge:"icon-192.png",tag:"volluto-estoque"}));
+  }else new Notification(titulo,{body:corpo,icon:"icon-192.png"});
+}
+function avisarEstoqueBaixo(item){
+  if(!item || item.qtd>item.min) return;
+  const chave="notificado_"+item.id+"_"+item.qtd;
+  if(sessionStorage.getItem(chave)) return;
+  sessionStorage.setItem(chave,"1");
+  if(Notification.permission==="granted"){
+    testarNotificacao("⚠️ Estoque baixo - "+item.nome,`Saldo atual: ${item.qtd} ${item.un}. Estoque mínimo: ${item.min} ${item.un}.`);
+  }
+  enviarEventoCloud(item);
+}
+async function enviarEventoCloud(item){
+  try{
+    if(!window.VOLLUTO_CLOUD_ENDPOINT) return;
+    await fetch(window.VOLLUTO_CLOUD_ENDPOINT,{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({tipo:"estoque_baixo",item:{id:item.id,nome:item.nome,qtd:item.qtd,min:item.min,un:item.un,equip:item.equip,codigo:item.codigo}})
+    });
+  }catch(e){console.warn("Cloud endpoint indisponível",e)}
+}
+
+refresh();atualizarStatusNotif();if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js");
+</script>
+</body></html>
