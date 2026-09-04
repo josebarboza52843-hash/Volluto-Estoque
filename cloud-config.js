@@ -1,4 +1,4 @@
-// Volluto Estoque - configuração do serviço externo de notificação.
-// Deixe vazio para usar somente notificações locais.
-// Após publicar sua Firebase Function, cole a URL abaixo:
-window.VOLLUTO_CLOUD_ENDPOINT = "";
+// Configure somente quando houver um backend de sincronização.
+// Exemplo:
+// window.VOLLUTO_SYNC_ENDPOINT = "https://seu-servidor.com/api/sync";
+window.VOLLUTO_SYNC_ENDPOINT = "";

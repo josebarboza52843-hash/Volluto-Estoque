@@ -1,13 +1,5 @@
-const C="volluto-estoque-v2",A=["./","./index.html","./cloud-config.js","./manifest.webmanifest","./icon-192.png","./icon-512.png"];
-self.addEventListener("install",e=>e.waitUntil(caches.open(C).then(c=>c.addAll(A))));
-self.addEventListener("activate",e=>e.waitUntil(self.clients.claim()));
-self.addEventListener("fetch",e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
-self.addEventListener("push",e=>{
-  let d={title:"Volluto Estoque",body:"Há uma atualização de estoque."};
-  try{d=e.data.json()}catch(_){}
-  e.waitUntil(self.registration.showNotification(d.title||"Volluto Estoque",{body:d.body||"",icon:"icon-192.png",badge:"icon-192.png",data:d.url||"./"}));
-});
-self.addEventListener("notificationclick",e=>{
-  e.notification.close();
-  e.waitUntil(clients.openWindow(e.notification.data||"./"));
-});
+const CACHE='volluto-estoque-pro-v5';
+const ASSETS=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./volluto-brand.png','./cloud-config.js','./volluto-home-visual.png'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));self.skipWaiting()});
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match('./index.html'))))});

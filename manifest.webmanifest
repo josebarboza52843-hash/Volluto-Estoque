@@ -1,10 +1,11 @@
 {
-  "name": "Volluto Estoque",
+  "name": "Volluto Estoque Pro v5",
   "short_name": "Volluto Estoque",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f3f6fa",
+  "background_color": "#071f46",
   "theme_color": "#071f46",
+  "description": "Aplicativo de estoque Volluto com interface visual profissional, operação offline e gestão O&M.",
   "icons": [
     {
       "src": "icon-192.png",
